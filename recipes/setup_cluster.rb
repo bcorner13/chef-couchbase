@@ -17,10 +17,12 @@ if Chef::Config[:solo] && !Chef::Config[:local_mode]
 else
   cluster = search(:node, "role:#{cluster_name}")
 end
+  puts "***** Cluster Name:#{cluster}"
 
 unless cluster.empty?
   target = node_to_join(cluster, selfipaddress, node['couchbase']['server']['username'], node['couchbase']['server']['password'])
 end
+  puts "***** Target Name:#{target}"
 
 if target
   add_node cluster_name do

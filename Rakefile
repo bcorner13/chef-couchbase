@@ -49,3 +49,10 @@ end
 task default: ['style', 'spec', 'integration:vagrant']
 task ec2: ['style', 'spec', 'integration:ec2']
 task test: ['style', 'spec']
+
+begin
+  require "kitchen/rake_tasks"
+  Kitchen::RakeTasks.new
+rescue LoadError
+  puts ">>>>> Kitchen gem not loaded, omitting tasks" unless ENV["CI"]
+end

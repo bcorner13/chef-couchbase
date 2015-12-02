@@ -1,26 +1,88 @@
 ---
 driver:
-  name: vagrant
+  name: ec2
+  aws_ssh_key_id: app-couchbase
+  shared_credentials_profile: dev
+  require_chef_omnibus: true
+  region: us-east-1
+  availability_zone: b
+  instance_type: t2.medium
+  associate_public_ip: false
+  interface: private
+ 
+transport:
+  ssh_key: /Users/bcorner/Projects/keys/app-couchbase.pem
+  connection_timeout: 10
+  connection_retries: 5
+  username: centos 
+
+driver_config:
   customize:
-    memory: 2048
-  network:
-    - ["private_network", {ip: "192.168.10.11"}]
-  vagrantfiles:
-    - test/files/VagrantAdditional.rb
+    memory: 4096
 
 provisioner:
   name: chef_zero
+  http_proxy: 'http://internal-dev-squidlb-1691991998.us-east-1.elb.amazonaws.com:3128'
+  https_proxy: 'http://internal-dev-squidlb-1691991998.us-east-1.elb.amazonaws.com:3128'
+  require_chef_omnibus: '12.4.1'
+  nodes_path: 'test/nodes'
+  
 
 platforms:
   - name: centos-6.7
+    driver:
+      image_id: ami-0b663b6e
+      subnet_id: subnet-f9e386d2
+      security_group_ids: sg-18e3757f
 
 suites:
   - name: couchbase_server 
     data_bags_path: test/integration/data_bags
     run_list:
       - recipe[couchbase::server]
+      - recipe[couchbase::setup_cluster]
+      - recipe[couchbase::bucket]
     attributes:
       couchbase:
         server:
+          cluster_name: "testingcluster"
+          username: "Administrator"
+          password: "password"
           memory_quota_mb: 256
-          version: "4.0.0"
+          edition: "enterprise"
+      ddnsupdate:
+        no_ddnssec: true
+        use_resolv_conf: true
+        ttl: 300
+        host:
+          reverse_zone: '149.10.in-addr.arpa'
+          zone: 'fanatics.corp'
+      yum: 
+        main:
+          proxy: 'http://internal-dev-squidlb-1691991998.us-east-1.elb.amazonaws.com:3128'
+
+  - name: couchbase_server_2
+    data_bags_path: test/integration/data_bags
+    run_list:
+      - recipe[couchbase::server]
+      - recipe[couchbase::setup_cluster]
+      - recipe[couchbase::bucket]
+    attributes:
+      couchbase:
+        server:
+          cluster_name: "testingcluster"
+          username: "Administrator"
+          password: "password"
+          memory_quota_mb: 256
+          edition: "enterprise"
+          version: "3.1.2"
+      ddnsupdate:
+        no_ddnssec: true
+        use_resolv_conf: true
+        ttl: 300
+        host:
+          reverse_zone: '149.10.in-addr.arpa'
+          zone: 'fanatics.corp'
+      yum: 
+        main:
+          proxy: 'http://internal-dev-squidlb-1691991998.us-east-1.elb.amazonaws.com:3128'
