@@ -50,6 +50,7 @@ suites:
           password: "password"
           memory_quota_mb: 256
           edition: "enterprise"
+          version: "3.1.2"
       ddnsupdate:
         no_ddnssec: true
         use_resolv_conf: true
